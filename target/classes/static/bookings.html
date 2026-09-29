@@ -1,0 +1,869 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>BookMyRoom | Bookings</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f1f5f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            flex-shrink: 0;
+            background: #172554;
+            padding: 25px 15px;
+            color: white;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 13px 15px;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 35px;
+        }
+
+        .card-box {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            color: #172554;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .table th {
+            background: #eff6ff;
+            color: #172554;
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .main {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="d-flex layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="brand">BookMyRoom</div>
+        <div class="subtitle">Guest House Management</div>
+
+        <a href="/index.html">Dashboard</a>
+        <a href="/rooms.html">Rooms</a>
+        <a href="/guests.html">Guests</a>
+        <a href="/bookings.html" class="active">Bookings</a>
+        <a href="/stays.html">Check-in / Check-out</a>
+        <a href="/maintenance.html">Maintenance</a>
+        <a href="/payments.html">Payments</a>
+        <a href="/reports.html">Reports</a>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <div class="d-flex justify-content-between
+                    align-items-center mb-4 gap-3">
+            <div>
+                <h2 class="fw-bold">Booking Management</h2>
+                <p class="text-muted">
+                    Manage guest house reservations
+                </p>
+            </div>
+
+            <button class="btn btn-primary"
+                    onclick="openBookingForm()">
+                + New Booking
+            </button>
+        </div>
+
+        <div id="message"
+             class="alert d-none"
+             role="alert"></div>
+
+        <!-- STATISTICS -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Total Bookings
+                    </p>
+                    <div id="totalBookings"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Confirmed
+                    </p>
+                    <div id="confirmedBookings"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Cancelled
+                    </p>
+                    <div id="cancelledBookings"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BOOKING TABLE -->
+        <div class="card-box">
+
+            <div class="d-flex justify-content-between
+                        align-items-center mb-3">
+                <h4>All Bookings</h4>
+
+                <button class="btn btn-outline-primary"
+                        onclick="loadBookings()">
+                    Refresh
+                </button>
+            </div>
+
+            <div class="row g-2 mb-3">
+
+                <div class="col-md-8">
+                    <input type="search"
+                           id="searchBooking"
+                           class="form-control"
+                           placeholder="Search by guest, room or booking ID"
+                           oninput="displayBookings()">
+                </div>
+
+                <div class="col-md-4">
+                    <select id="statusFilter"
+                            class="form-select"
+                            onchange="displayBookings()">
+
+                        <option value="">All statuses</option>
+                        <option value="CONFIRMED">Confirmed</option>
+                        <option value="CHECKED_IN">Checked In</option>
+                        <option value="CHECKED_OUT">Checked Out</option>
+                        <option value="CANCELLED">Cancelled</option>
+
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered
+                              table-hover align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Guest</th>
+                        <th>Room</th>
+                        <th>Check-in</th>
+                        <th>Check-out</th>
+                        <th>Total Cost</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="bookingTable">
+                    <tr>
+                        <td colspan="8"
+                            class="text-center">
+                            Loading bookings...
+                        </td>
+                    </tr>
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- NEW BOOKING MODAL -->
+<div class="modal fade"
+     id="bookingModal"
+     tabindex="-1"
+     aria-labelledby="bookingModalTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <form id="bookingForm">
+
+                <div class="modal-header">
+                    <h5 class="modal-title"
+                        id="bookingModalTitle">
+                        New Booking
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div id="formError"
+                         class="alert alert-danger d-none"
+                         role="alert"></div>
+
+                    <div class="mb-3">
+                        <label for="guestId"
+                               class="form-label">
+                            Select Guest
+                        </label>
+
+                        <select id="guestId"
+                                class="form-select"
+                                required>
+                            <option value="">
+                                Select guest
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="roomId"
+                               class="form-label">
+                            Select Room
+                        </label>
+
+                        <select id="roomId"
+                                class="form-select"
+                                onchange="calculateEstimate()"
+                                required>
+                            <option value="">
+                                Select room
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="checkIn"
+                               class="form-label">
+                            Check-in Date
+                        </label>
+
+                        <input type="date"
+                               id="checkIn"
+                               class="form-control"
+                               onchange="calculateEstimate()"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="checkOut"
+                               class="form-label">
+                            Check-out Date
+                        </label>
+
+                        <input type="date"
+                               id="checkOut"
+                               class="form-control"
+                               onchange="calculateEstimate()"
+                               required>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <div>
+                            Estimated nights:
+                            <strong id="estimatedNights">--</strong>
+                        </div>
+
+                        <div>
+                            Estimated total:
+                            <strong id="estimatedTotal">--</strong>
+                        </div>
+
+                        <small>
+                            Final cost and availability are
+                            confirmed by the backend.
+                        </small>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Close
+                    </button>
+
+                    <button type="submit"
+                            id="saveButton"
+                            class="btn btn-primary">
+                        Create Booking
+                    </button>
+
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const BOOKING_API = "/api/bookings";
+    const ROOM_API = "/api/rooms";
+    const GUEST_API = "/api/guests";
+
+    const bookingModal = new bootstrap.Modal(
+        document.getElementById("bookingModal")
+    );
+
+    let bookings = [];
+    let rooms = [];
+    let guests = [];
+
+    function showMessage(text, type = "success") {
+        const box = document.getElementById("message");
+        box.className = "alert alert-" + type;
+        box.textContent = text;
+    }
+
+    function showFormError(text) {
+        const box = document.getElementById("formError");
+        box.textContent = text;
+        box.classList.remove("d-none");
+    }
+
+    function clearFormError() {
+        const box = document.getElementById("formError");
+        box.textContent = "";
+        box.classList.add("d-none");
+    }
+
+    function formatMoney(value) {
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) {
+            return "--";
+        }
+
+        return number.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR"
+        });
+    }
+
+    // LOAD ROOMS AND GUESTS FOR THE BOOKING FORM
+    async function loadFormOptions() {
+
+        const [roomResponse, guestResponse] =
+            await Promise.all([
+                fetch(ROOM_API),
+                fetch(GUEST_API)
+            ]);
+
+        if (!roomResponse.ok || !guestResponse.ok) {
+            throw new Error(
+                "Unable to load rooms or guests"
+            );
+        }
+
+        rooms = await roomResponse.json();
+        guests = await guestResponse.json();
+
+        const roomSelect =
+            document.getElementById("roomId");
+
+        const guestSelect =
+            document.getElementById("guestId");
+
+        roomSelect.replaceChildren(
+            new Option("Select room", "")
+        );
+
+        guestSelect.replaceChildren(
+            new Option("Select guest", "")
+        );
+
+        rooms.forEach(room => {
+
+            const label =
+                room.roomNumber +
+                " - " +
+                room.roomType +
+                " (" +
+                formatMoney(room.ratePerNight) +
+                "/night)";
+
+            roomSelect.add(
+                new Option(label, room.id)
+            );
+        });
+
+        guests.forEach(guest => {
+
+            guestSelect.add(
+                new Option(
+                    guest.name + " (" + guest.email + ")",
+                    guest.id
+                )
+            );
+        });
+    }
+
+    // OPEN NEW BOOKING FORM
+    async function openBookingForm() {
+
+        document.getElementById("bookingForm").reset();
+
+        document.getElementById("estimatedNights")
+            .textContent = "--";
+
+        document.getElementById("estimatedTotal")
+            .textContent = "--";
+
+        clearFormError();
+
+        bookingModal.show();
+
+        try {
+            await loadFormOptions();
+        } catch (error) {
+            showFormError(error.message);
+        }
+    }
+
+    // CALCULATE ESTIMATED COST
+    function calculateEstimate() {
+
+        const roomId =
+            Number(document.getElementById("roomId").value);
+
+        const checkIn =
+            document.getElementById("checkIn").value;
+
+        const checkOut =
+            document.getElementById("checkOut").value;
+
+        const room = rooms.find(
+            item => item.id === roomId
+        );
+
+        const nightsElement =
+            document.getElementById("estimatedNights");
+
+        const totalElement =
+            document.getElementById("estimatedTotal");
+
+        nightsElement.textContent = "--";
+        totalElement.textContent = "--";
+
+        if (!room || !checkIn || !checkOut) {
+            return;
+        }
+
+        const start = Date.parse(
+            checkIn + "T00:00:00Z"
+        );
+
+        const end = Date.parse(
+            checkOut + "T00:00:00Z"
+        );
+
+        const nights =
+            (end - start) / 86400000;
+
+        if (!Number.isInteger(nights) || nights <= 0) {
+            return;
+        }
+
+        nightsElement.textContent = nights;
+
+        totalElement.textContent = formatMoney(
+            nights * Number(room.ratePerNight)
+        );
+    }
+
+    // CREATE BOOKING
+    document.getElementById("bookingForm")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+            clearFormError();
+
+            const roomId = Number(
+                document.getElementById("roomId").value
+            );
+
+            const guestId = Number(
+                document.getElementById("guestId").value
+            );
+
+            const checkIn =
+                document.getElementById("checkIn").value;
+
+            const checkOut =
+                document.getElementById("checkOut").value;
+
+            if (!roomId || !guestId) {
+                showFormError(
+                    "Please select a room and guest."
+                );
+                return;
+            }
+
+            if (!checkIn || !checkOut ||
+                checkOut <= checkIn) {
+
+                showFormError(
+                    "Check-out must be after check-in."
+                );
+
+                return;
+            }
+
+            const bookingData = {
+                room: {
+                    id: roomId
+                },
+                guest: {
+                    id: guestId
+                },
+                checkIn: checkIn,
+                checkOut: checkOut
+            };
+
+            const saveButton =
+                document.getElementById("saveButton");
+
+            saveButton.disabled = true;
+
+            try {
+
+                const response = await fetch(
+                    BOOKING_API,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify(bookingData)
+                    }
+                );
+
+                if (!response.ok) {
+                    const details =
+                        await response.text();
+
+                    throw new Error(
+                        "HTTP " + response.status +
+                        (details
+                            ? ": " + details.slice(0, 200)
+                            : "")
+                    );
+                }
+
+                bookingModal.hide();
+
+                showMessage(
+                    "Booking created successfully!"
+                );
+
+                await loadBookings();
+
+            } catch (error) {
+
+                console.error(error);
+
+                showFormError(
+                    "Unable to create booking. " +
+                    "The room may already be booked " +
+                    "or unavailable for these dates. " +
+                    error.message
+                );
+
+            } finally {
+                saveButton.disabled = false;
+            }
+        });
+
+    // LOAD ALL BOOKINGS
+    async function loadBookings() {
+
+        const table =
+            document.getElementById("bookingTable");
+
+        table.replaceChildren();
+
+        const loadingRow = table.insertRow();
+        const loadingCell = loadingRow.insertCell();
+
+        loadingCell.colSpan = 8;
+        loadingCell.className = "text-center";
+        loadingCell.textContent = "Loading bookings...";
+
+        try {
+
+            const response = await fetch(BOOKING_API);
+
+            if (!response.ok) {
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            bookings = await response.json();
+
+            updateStatistics();
+            displayBookings();
+
+        } catch (error) {
+
+            console.error(error);
+
+            table.replaceChildren();
+
+            const row = table.insertRow();
+            const cell = row.insertCell();
+
+            cell.colSpan = 8;
+            cell.className =
+                "text-center text-danger";
+
+            cell.textContent =
+                "Unable to load bookings";
+
+            showMessage(
+                "Unable to load bookings: " +
+                error.message,
+                "danger"
+            );
+        }
+    }
+
+    // UPDATE SUMMARY CARDS
+    function updateStatistics() {
+
+        document.getElementById("totalBookings")
+            .textContent = bookings.length;
+
+        document.getElementById("confirmedBookings")
+            .textContent = bookings.filter(
+            booking =>
+                booking.status === "CONFIRMED"
+        ).length;
+
+        document.getElementById("cancelledBookings")
+            .textContent = bookings.filter(
+            booking =>
+                booking.status === "CANCELLED"
+        ).length;
+    }
+
+    // DISPLAY AND FILTER BOOKINGS
+    function displayBookings() {
+
+        const table =
+            document.getElementById("bookingTable");
+
+        const search =
+            document.getElementById("searchBooking")
+                .value.toLowerCase().trim();
+
+        const status =
+            document.getElementById("statusFilter")
+                .value;
+
+        const filtered = bookings.filter(booking => {
+
+            const matchesSearch = [
+                booking.id,
+                booking.guest?.name,
+                booking.room?.roomNumber
+            ].some(value =>
+                String(value ?? "")
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+            const matchesStatus =
+                !status || booking.status === status;
+
+            return matchesSearch && matchesStatus;
+        });
+
+        table.replaceChildren();
+
+        if (filtered.length === 0) {
+
+            const row = table.insertRow();
+            const cell = row.insertCell();
+
+            cell.colSpan = 8;
+            cell.className = "text-center";
+            cell.textContent = "No bookings found";
+
+            return;
+        }
+
+        filtered.forEach(booking => {
+
+            const row = table.insertRow();
+
+            const values = [
+                booking.id,
+                booking.guest?.name ?? "--",
+                booking.room?.roomNumber ?? "--",
+                booking.checkIn ?? "--",
+                booking.checkOut ?? "--",
+                formatMoney(booking.totalCost),
+                booking.status ?? "--"
+            ];
+
+            values.forEach(value => {
+
+                const cell = row.insertCell();
+                cell.textContent = value;
+
+            });
+
+            const actionCell = row.insertCell();
+
+            if (booking.status === "CONFIRMED") {
+
+                const cancelButton =
+                    document.createElement("button");
+
+                cancelButton.className =
+                    "btn btn-sm btn-danger";
+
+                cancelButton.textContent =
+                    "Cancel";
+
+                cancelButton.onclick =
+                    () => cancelBooking(booking.id);
+
+                actionCell.appendChild(cancelButton);
+
+            } else {
+
+                actionCell.textContent = "--";
+            }
+        });
+    }
+
+    // CANCEL AN EXISTING BOOKING
+    async function cancelBooking(id) {
+
+        const confirmed = confirm(
+            "Cancel booking #" + id + "?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `${BOOKING_API}/${id}/cancel`,
+                {
+                    method: "PUT"
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            showMessage(
+                "Booking cancelled successfully!"
+            );
+
+            await loadBookings();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Unable to cancel booking: " +
+                error.message,
+                "danger"
+            );
+        }
+    }
+
+    // INITIAL PAGE LOAD
+    document.addEventListener(
+        "DOMContentLoaded",
+        loadBookings
+    );
+
+</script>
+
+</body>
+</html>

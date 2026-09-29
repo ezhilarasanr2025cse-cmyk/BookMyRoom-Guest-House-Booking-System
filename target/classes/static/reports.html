@@ -1,0 +1,951 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>BookMyRoom | Reports</title>
+
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f1f5f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            flex-shrink: 0;
+            background: #172554;
+            padding: 25px 15px;
+            color: white;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 13px 15px;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 35px;
+        }
+
+        .report-card {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            height: 100%;
+        }
+
+        .stat-value {
+            color: #172554;
+            font-size: 29px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        .report-data {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 220px;
+            overflow: auto;
+            font-size: 12px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .section-title {
+            color: #172554;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .main {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="d-flex layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+
+        <div class="brand">BookMyRoom</div>
+        <div class="subtitle">Guest House Management</div>
+
+        <a href="/index.html">Dashboard</a>
+        <a href="/rooms.html">Rooms</a>
+        <a href="/guests.html">Guests</a>
+        <a href="/bookings.html">Bookings</a>
+        <a href="/stays.html">Check-in / Check-out</a>
+        <a href="/maintenance.html">Maintenance</a>
+        <a href="/payments.html">Payments</a>
+        <a href="/reports.html" class="active">Reports</a>
+
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <div class="d-flex justify-content-between
+                    align-items-center mb-4 gap-3">
+
+            <div>
+                <h2 class="fw-bold">
+                    Reports & Analytics
+                </h2>
+
+                <p class="text-muted">
+                    Booking, revenue and occupancy reports
+                </p>
+            </div>
+
+            <button class="btn btn-primary"
+                    onclick="loadAllReports()">
+                Refresh Reports
+            </button>
+
+        </div>
+
+        <div id="message"
+             class="alert d-none"
+             role="alert"></div>
+
+        <!-- DASHBOARD STATISTICS -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-3 col-sm-6">
+                <div class="report-card">
+                    <p class="text-muted mb-2">
+                        Total Rooms
+                    </p>
+                    <div id="totalRooms"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="report-card">
+                    <p class="text-muted mb-2">
+                        Total Guests
+                    </p>
+                    <div id="totalGuests"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="report-card">
+                    <p class="text-muted mb-2">
+                        Total Bookings
+                    </p>
+                    <div id="totalBookings"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-sm-6">
+                <div class="report-card">
+                    <p class="text-muted mb-2">
+                        Total Revenue
+                    </p>
+                    <div id="totalRevenue"
+                         class="stat-value">--</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- REPORT FILTERS -->
+        <div class="report-card mb-4">
+
+            <h4 class="section-title mb-3">
+                Report Filters
+            </h4>
+
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+
+                    <label for="reportMonth"
+                           class="form-label">
+                        Select Month
+                    </label>
+
+                    <input type="month"
+                           id="reportMonth"
+                           class="form-control">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label for="occupancyDate"
+                           class="form-label">
+                        Occupancy Date
+                    </label>
+
+                    <input type="date"
+                           id="occupancyDate"
+                           class="form-control">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <button class="btn btn-primary w-100"
+                            onclick="loadAllReports()">
+                        Generate Reports
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- MONTHLY REPORTS -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-lg-6">
+
+                <div class="report-card">
+
+                    <h4 class="section-title">
+                        Monthly Bookings
+                    </h4>
+
+                    <div class="chart-container">
+                        <canvas id="bookingsChart"></canvas>
+                    </div>
+
+                    <p id="bookingsNote"
+                       class="text-muted small mt-3"></p>
+
+                    <details>
+                        <summary>View report data</summary>
+                        <pre id="bookingsData"
+                             class="report-data mt-2"></pre>
+                    </details>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-6">
+
+                <div class="report-card">
+
+                    <h4 class="section-title">
+                        Monthly Revenue
+                    </h4>
+
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+
+                    <p id="revenueNote"
+                       class="text-muted small mt-3"></p>
+
+                    <details>
+                        <summary>View report data</summary>
+                        <pre id="revenueData"
+                             class="report-data mt-2"></pre>
+                    </details>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- OCCUPANCY AND POPULAR ROOMS -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-lg-6">
+
+                <div class="report-card">
+
+                    <h4 class="section-title">
+                        Room Occupancy
+                    </h4>
+
+                    <p id="occupancyLabel"
+                       class="text-muted"></p>
+
+                    <div class="chart-container">
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+
+                    <p id="occupancyNote"
+                       class="text-muted small mt-3"></p>
+
+                    <details>
+                        <summary>View report data</summary>
+                        <pre id="occupancyData"
+                             class="report-data mt-2"></pre>
+                    </details>
+
+                </div>
+
+            </div>
+
+            <div class="col-lg-6">
+
+                <div class="report-card">
+
+                    <h4 class="section-title">
+                        Popular Rooms
+                    </h4>
+
+                    <div class="chart-container">
+                        <canvas id="roomsChart"></canvas>
+                    </div>
+
+                    <p id="roomsNote"
+                       class="text-muted small mt-3"></p>
+
+                    <details>
+                        <summary>View report data</summary>
+                        <pre id="roomsData"
+                             class="report-data mt-2"></pre>
+                    </details>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- PAYMENT STATUS -->
+        <div class="report-card mb-4">
+
+            <h4 class="section-title">
+                Payment Status
+            </h4>
+
+            <div class="chart-container">
+                <canvas id="paymentsChart"></canvas>
+            </div>
+
+            <p id="paymentsNote"
+               class="text-muted small mt-3"></p>
+
+            <details>
+                <summary>View report data</summary>
+                <pre id="paymentsData"
+                     class="report-data mt-2"></pre>
+            </details>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+
+<script>
+
+    const REPORT_API = "/api/reports";
+
+    // Keep chart instances so refreshing does not
+    // create multiple charts on the same canvas.
+    const charts = {};
+
+    function showMessage(text, type = "danger") {
+
+        const box = document.getElementById("message");
+
+        box.className = "alert alert-" + type;
+        box.textContent = text;
+    }
+
+    function formatMoney(value) {
+
+        const amount = Number(value);
+
+        if (!Number.isFinite(amount)) {
+            return "--";
+        }
+
+        return amount.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR"
+        });
+    }
+
+    function showData(id, data) {
+
+        document.getElementById(id).textContent =
+            JSON.stringify(data, null, 2);
+    }
+
+    // Request JSON and report HTTP errors.
+    async function getJSON(url) {
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(
+                "HTTP " + response.status +
+                " from " + url
+            );
+        }
+
+        return await response.json();
+    }
+
+    // Accept only finite numeric values.
+    function numberOrNull(value) {
+
+        if (value === null ||
+            value === undefined ||
+            value === "") {
+            return null;
+        }
+
+        const number = Number(value);
+
+        return Number.isFinite(number)
+            ? number
+            : null;
+    }
+
+    // Support arrays of records and simple
+    // objects such as {"SUCCESS": 4}.
+    function chartEntries(
+        data,
+        labelFields,
+        valueFields
+    ) {
+
+        if (Array.isArray(data)) {
+
+            return data.map((item, index) => {
+
+                if (typeof item === "number") {
+                    return {
+                        label: String(index + 1),
+                        value: item
+                    };
+                }
+
+                const labelField = labelFields.find(
+                    key => item?.[key] !== undefined
+                );
+
+                const valueField = valueFields.find(
+                    key => item?.[key] !== undefined
+                );
+
+                return {
+                    label: labelField
+                        ? String(item[labelField])
+                        : String(index + 1),
+
+                    value: valueField
+                        ? numberOrNull(item[valueField])
+                        : null
+                };
+
+            }).filter(item => item.value !== null);
+        }
+
+        if (data &&
+            typeof data === "object") {
+
+            return Object.entries(data)
+                .map(([label, value]) => ({
+                    label: label,
+                    value: numberOrNull(value)
+                }))
+                .filter(item => item.value !== null);
+        }
+
+        return [];
+    }
+
+    function renderChart(
+        canvasId,
+        type,
+        labels,
+        values,
+        color
+    ) {
+
+        if (charts[canvasId]) {
+            charts[canvasId].destroy();
+        }
+
+        charts[canvasId] = new Chart(
+            document.getElementById(canvasId),
+            {
+                type: type,
+
+                data: {
+                    labels: labels,
+
+                    datasets: [{
+                        label: "Value",
+                        data: values,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    plugins: {
+                        legend: {
+                            display:
+                                type === "doughnut"
+                        }
+                    },
+
+                    scales:
+                        type === "doughnut"
+                            ? {}
+                            : {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                }
+            }
+        );
+    }
+
+    // DASHBOARD REPORT
+    async function loadDashboard() {
+
+        const data = await getJSON(
+            REPORT_API + "/dashboard"
+        );
+
+        document.getElementById("totalRooms")
+            .textContent =
+            data.totalRooms ?? "--";
+
+        document.getElementById("totalGuests")
+            .textContent =
+            data.totalGuests ?? "--";
+
+        document.getElementById("totalBookings")
+            .textContent =
+            data.totalBookings ?? "--";
+
+        document.getElementById("totalRevenue")
+            .textContent =
+            formatMoney(data.totalRevenue);
+    }
+
+    // MONTHLY BOOKINGS
+    async function loadMonthlyBookings(
+        year,
+        month
+    ) {
+
+        const data = await getJSON(
+            `${REPORT_API}/bookings/monthly` +
+            `?year=${year}&month=${month}`
+        );
+
+        showData("bookingsData", data);
+
+        const note =
+            document.getElementById("bookingsNote");
+
+        let entries = chartEntries(
+            data,
+            ["date", "day", "month", "label"],
+            ["count", "bookingCount", "totalBookings"]
+        );
+
+        // Some APIs return a single summary object.
+        if (entries.length === 0 &&
+            data &&
+            !Array.isArray(data)) {
+
+            const total = numberOrNull(
+                data.totalBookings ??
+                data.bookingCount ??
+                data.count
+            );
+
+            if (total !== null) {
+                entries = [{
+                    label: `${year}-${String(month).padStart(2, "0")}`,
+                    value: total
+                }];
+            }
+        }
+
+        if (entries.length === 0) {
+            note.textContent =
+                "No recognized chart values. " +
+                "Expand View report data to inspect the response.";
+            return;
+        }
+
+        note.textContent = "";
+
+        renderChart(
+            "bookingsChart",
+            "bar",
+            entries.map(item => item.label),
+            entries.map(item => item.value),
+            "#2563eb"
+        );
+    }
+
+    // MONTHLY REVENUE
+    async function loadMonthlyRevenue(
+        year,
+        month
+    ) {
+
+        const data = await getJSON(
+            `${REPORT_API}/revenue/monthly` +
+            `?year=${year}&month=${month}`
+        );
+
+        showData("revenueData", data);
+
+        const note =
+            document.getElementById("revenueNote");
+
+        let entries = chartEntries(
+            data,
+            ["date", "day", "month", "label"],
+            ["revenue", "amount", "totalRevenue"]
+        );
+
+        if (entries.length === 0 &&
+            data &&
+            !Array.isArray(data)) {
+
+            const total = numberOrNull(
+                data.totalRevenue ??
+                data.revenue ??
+                data.amount
+            );
+
+            if (total !== null) {
+                entries = [{
+                    label: `${year}-${String(month).padStart(2, "0")}`,
+                    value: total
+                }];
+            }
+        }
+
+        if (entries.length === 0) {
+            note.textContent =
+                "No recognized revenue values. " +
+                "Expand View report data to inspect the response.";
+            return;
+        }
+
+        note.textContent = "";
+
+        renderChart(
+            "revenueChart",
+            "bar",
+            entries.map(item => item.label),
+            entries.map(item => item.value),
+            "#16a34a"
+        );
+    }
+
+    // OCCUPANCY REPORT
+    async function loadOccupancy(date) {
+
+        const data = await getJSON(
+            `${REPORT_API}/occupancy?date=${date}`
+        );
+
+        showData("occupancyData", data);
+
+        document.getElementById("occupancyLabel")
+            .textContent = "Date: " + date;
+
+        const occupied = numberOrNull(
+            data.occupiedRooms ??
+            data.bookedRooms
+        );
+
+        const available = numberOrNull(
+            data.availableRooms ??
+            data.vacantRooms
+        );
+
+        const total = numberOrNull(
+            data.totalRooms
+        );
+
+        const note =
+            document.getElementById("occupancyNote");
+
+        let occupiedValue = occupied;
+        let availableValue = available;
+
+        if (occupiedValue !== null &&
+            availableValue === null &&
+            total !== null) {
+
+            availableValue =
+                total - occupiedValue;
+        }
+
+        if (occupiedValue === null ||
+            availableValue === null ||
+            occupiedValue < 0 ||
+            availableValue < 0) {
+
+            note.textContent =
+                "Occupancy data is available below. " +
+                "The chart requires occupiedRooms and " +
+                "availableRooms (or totalRooms).";
+
+            return;
+        }
+
+        note.textContent = "";
+
+        renderChart(
+            "occupancyChart",
+            "doughnut",
+            ["Occupied", "Available"],
+            [occupiedValue, availableValue],
+            ["#2563eb", "#cbd5e1"]
+        );
+    }
+
+    // POPULAR ROOMS REPORT
+    async function loadPopularRooms() {
+
+        const data = await getJSON(
+            REPORT_API + "/rooms/popular"
+        );
+
+        showData("roomsData", data);
+
+        const entries = chartEntries(
+            data,
+            ["roomNumber", "room", "name", "label"],
+            ["bookingCount", "count", "totalBookings"]
+        );
+
+        const note =
+            document.getElementById("roomsNote");
+
+        if (entries.length === 0) {
+
+            note.textContent =
+                "No recognized room counts. " +
+                "Expand View report data to inspect the response.";
+
+            return;
+        }
+
+        note.textContent = "";
+
+        renderChart(
+            "roomsChart",
+            "bar",
+            entries.map(item => item.label),
+            entries.map(item => item.value),
+            "#7c3aed"
+        );
+    }
+
+    // PAYMENT STATUS REPORT
+    async function loadPaymentStatus() {
+
+        const data = await getJSON(
+            REPORT_API + "/payments/status"
+        );
+
+        showData("paymentsData", data);
+
+        const entries = chartEntries(
+            data,
+            ["status", "paymentStatus", "label"],
+            ["count", "paymentCount", "total"]
+        );
+
+        const note =
+            document.getElementById("paymentsNote");
+
+        if (entries.length === 0) {
+
+            note.textContent =
+                "No recognized payment counts. " +
+                "Expand View report data to inspect the response.";
+
+            return;
+        }
+
+        note.textContent = "";
+
+        renderChart(
+            "paymentsChart",
+            "doughnut",
+            entries.map(item => item.label),
+            entries.map(item => item.value),
+            [
+                "#16a34a",
+                "#f59e0b",
+                "#dc2626",
+                "#64748b"
+            ]
+        );
+    }
+
+    // LOAD ALL REPORTS
+    async function loadAllReports() {
+
+        const monthValue =
+            document.getElementById("reportMonth").value;
+
+        const dateValue =
+            document.getElementById("occupancyDate").value;
+
+        if (!monthValue || !dateValue) {
+
+            showMessage(
+                "Please select a month and occupancy date."
+            );
+
+            return;
+        }
+
+        const [year, month] =
+            monthValue.split("-").map(Number);
+
+        const tasks = [
+            loadDashboard(),
+            loadMonthlyBookings(year, month),
+            loadMonthlyRevenue(year, month),
+            loadOccupancy(dateValue),
+            loadPopularRooms(),
+            loadPaymentStatus()
+        ];
+
+        const results =
+            await Promise.allSettled(tasks);
+
+        const failed =
+            results.filter(
+                result => result.status === "rejected"
+            );
+
+        if (failed.length > 0) {
+
+            console.error(
+                "Report errors:",
+                failed.map(item => item.reason)
+            );
+
+            showMessage(
+                `${failed.length} report(s) could not be loaded. ` +
+                "Check the browser console and API responses."
+            );
+
+        } else {
+
+            showMessage(
+                "Reports loaded successfully!",
+                "success"
+            );
+        }
+    }
+
+    // SET DEFAULT FILTERS USING LOCAL DATE
+    document.addEventListener(
+        "DOMContentLoaded",
+        function() {
+
+            const today = new Date();
+
+            const year = today.getFullYear();
+
+            const month =
+                String(today.getMonth() + 1)
+                    .padStart(2, "0");
+
+            const day =
+                String(today.getDate())
+                    .padStart(2, "0");
+
+            document.getElementById(
+                "reportMonth"
+            ).value = `${year}-${month}`;
+
+            document.getElementById(
+                "occupancyDate"
+            ).value = `${year}-${month}-${day}`;
+
+            loadAllReports();
+        }
+    );
+
+</script>
+
+</body>
+</html>     

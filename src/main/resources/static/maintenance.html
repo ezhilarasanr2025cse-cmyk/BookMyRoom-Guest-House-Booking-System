@@ -1,0 +1,1081 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>BookMyRoom | Maintenance</title>
+
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f1f5f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            flex-shrink: 0;
+            background: #172554;
+            padding: 25px 15px;
+            color: white;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 13px 15px;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 35px;
+        }
+
+        .card-box {
+            background: white;
+            padding: 24px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            color: #172554;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .table th {
+            background: #eff6ff;
+            color: #172554;
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .main {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="d-flex layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+
+        <div class="brand">BookMyRoom</div>
+        <div class="subtitle">Guest House Management</div>
+
+        <a href="/index.html">Dashboard</a>
+        <a href="/rooms.html">Rooms</a>
+        <a href="/guests.html">Guests</a>
+        <a href="/bookings.html">Bookings</a>
+        <a href="/stays.html">Check-in / Check-out</a>
+        <a href="/maintenance.html" class="active">
+            Maintenance
+        </a>
+        <a href="/payments.html">Payments</a>
+        <a href="/reports.html">Reports</a>
+
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <div class="d-flex justify-content-between
+                    align-items-center mb-4 gap-3">
+
+            <div>
+                <h2 class="fw-bold">
+                    Maintenance Management
+                </h2>
+
+                <p class="text-muted">
+                    Manage room repairs and maintenance
+                </p>
+            </div>
+
+            <button class="btn btn-primary"
+                    onclick="openAddMaintenance()">
+                + Add Maintenance
+            </button>
+
+        </div>
+
+        <!-- ALERT -->
+        <div id="message"
+             class="alert d-none"
+             role="alert"></div>
+
+        <!-- SUMMARY -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Total Requests
+                    </p>
+
+                    <div class="stat-value"
+                         id="totalCount">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        In Progress
+                    </p>
+
+                    <div class="stat-value"
+                         id="progressCount">--</div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Completed
+                    </p>
+
+                    <div class="stat-value"
+                         id="completedCount">--</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MAINTENANCE TABLE -->
+        <div class="card-box">
+
+            <div class="d-flex justify-content-between
+                        align-items-center mb-3 gap-2">
+
+                <h4>Maintenance Records</h4>
+
+                <button class="btn btn-outline-primary"
+                        onclick="loadMaintenance()">
+                    Refresh
+                </button>
+
+            </div>
+
+            <div class="row g-2 mb-3">
+
+                <div class="col-md-8">
+
+                    <input type="search"
+                           id="searchMaintenance"
+                           class="form-control"
+                           placeholder="Search room or description"
+                           oninput="displayMaintenance()">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <select id="statusFilter"
+                            class="form-select"
+                            onchange="displayMaintenance()">
+
+                        <option value="">
+                            All statuses
+                        </option>
+
+                        <option value="SCHEDULED">
+                            Scheduled
+                        </option>
+
+                        <option value="IN_PROGRESS">
+                            In Progress
+                        </option>
+
+                        <option value="COMPLETED">
+                            Completed
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered
+                              table-hover align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Room</th>
+                        <th>Description</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="maintenanceTable">
+
+                    <tr>
+                        <td colspan="7"
+                            class="text-center">
+                            Loading maintenance records...
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<!-- ADD / EDIT MAINTENANCE MODAL -->
+<div class="modal fade"
+     id="maintenanceModal"
+     tabindex="-1"
+     aria-labelledby="modalTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <form id="maintenanceForm">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title"
+                        id="modalTitle">
+                        Add Maintenance
+                    </h5>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div id="formError"
+                         class="alert alert-danger d-none"
+                         role="alert"></div>
+
+                    <input type="hidden"
+                           id="maintenanceId">
+
+                    <div class="mb-3">
+
+                        <label for="roomId"
+                               class="form-label">
+                            Select Room
+                        </label>
+
+                        <select id="roomId"
+                                class="form-select"
+                                required>
+
+                            <option value="">
+                                Select room
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label for="description"
+                               class="form-label">
+                            Description
+                        </label>
+
+                        <textarea id="description"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500"
+                                  required></textarea>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label for="startDate"
+                               class="form-label">
+                            Start Date
+                        </label>
+
+                        <input type="date"
+                               id="startDate"
+                               class="form-control"
+                               required>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <label for="endDate"
+                               class="form-label">
+                            End Date
+                        </label>
+
+                        <input type="date"
+                               id="endDate"
+                               class="form-control"
+                               required>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <button type="submit"
+                            id="saveButton"
+                            class="btn btn-primary">
+                        Save Maintenance
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+    const MAINTENANCE_API = "/api/maintenance";
+    const ROOM_API = "/api/rooms";
+
+    const maintenanceModal = new bootstrap.Modal(
+        document.getElementById("maintenanceModal")
+    );
+
+    let maintenanceRecords = [];
+    let rooms = [];
+    let actionInProgress = false;
+
+    // SHOW SUCCESS OR ERROR MESSAGE
+    function showMessage(text, type = "success") {
+
+        const box =
+            document.getElementById("message");
+
+        box.className = "alert alert-" + type;
+        box.textContent = text;
+    }
+
+    // SHOW ERROR INSIDE THE FORM
+    function showFormError(text) {
+
+        const box =
+            document.getElementById("formError");
+
+        box.textContent = text;
+        box.classList.remove("d-none");
+    }
+
+    function clearFormError() {
+
+        const box =
+            document.getElementById("formError");
+
+        box.textContent = "";
+        box.classList.add("d-none");
+    }
+
+    // LOAD ROOMS FOR THE FORM
+    async function loadRooms() {
+
+        const response = await fetch(ROOM_API);
+
+        if (!response.ok) {
+            throw new Error(
+                "Unable to load rooms: HTTP " +
+                response.status
+            );
+        }
+
+        rooms = await response.json();
+
+        const select =
+            document.getElementById("roomId");
+
+        select.replaceChildren(
+            new Option("Select room", "")
+        );
+
+        rooms.forEach(room => {
+
+            select.add(
+                new Option(
+                    room.roomNumber +
+                    " - " +
+                    room.roomType,
+                    room.id
+                )
+            );
+        });
+    }
+
+    // LOAD MAINTENANCE RECORDS
+    async function loadMaintenance() {
+
+        const table =
+            document.getElementById("maintenanceTable");
+
+        table.replaceChildren();
+
+        const loadingRow = table.insertRow();
+        const loadingCell = loadingRow.insertCell();
+
+        loadingCell.colSpan = 7;
+        loadingCell.className = "text-center";
+        loadingCell.textContent =
+            "Loading maintenance records...";
+
+        try {
+
+            const response =
+                await fetch(MAINTENANCE_API);
+
+            if (!response.ok) {
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error(
+                    "Unexpected API response"
+                );
+            }
+
+            maintenanceRecords = data;
+
+            updateStatistics();
+            displayMaintenance();
+
+        } catch (error) {
+
+            console.error(error);
+
+            table.replaceChildren();
+
+            const row = table.insertRow();
+            const cell = row.insertCell();
+
+            cell.colSpan = 7;
+            cell.className =
+                "text-center text-danger";
+
+            cell.textContent =
+                "Unable to load maintenance records";
+
+            showMessage(
+                "Unable to load maintenance: " +
+                error.message,
+                "danger"
+            );
+        }
+    }
+
+    // UPDATE SUMMARY CARDS
+    function updateStatistics() {
+
+        document.getElementById("totalCount")
+            .textContent =
+            maintenanceRecords.length;
+
+        document.getElementById("progressCount")
+            .textContent =
+            maintenanceRecords.filter(
+                item =>
+                    item.status === "IN_PROGRESS"
+            ).length;
+
+        document.getElementById("completedCount")
+            .textContent =
+            maintenanceRecords.filter(
+                item =>
+                    item.status === "COMPLETED"
+            ).length;
+    }
+
+    // CREATE TABLE CELL
+    function addCell(row, value) {
+
+        const cell = row.insertCell();
+
+        cell.textContent = value ?? "--";
+
+        return cell;
+    }
+
+    // CREATE ACTION BUTTON
+    function createButton(text, color, onClick) {
+
+        const button =
+            document.createElement("button");
+
+        button.className =
+            "btn btn-sm btn-" + color + " me-2 mb-1";
+
+        button.textContent = text;
+        button.disabled = actionInProgress;
+        button.onclick = onClick;
+
+        return button;
+    }
+
+    // DISPLAY RECORDS
+    function displayMaintenance() {
+
+        const table =
+            document.getElementById("maintenanceTable");
+
+        const search =
+            document.getElementById(
+                "searchMaintenance"
+            ).value.toLowerCase().trim();
+
+        const status =
+            document.getElementById(
+                "statusFilter"
+            ).value;
+
+        const filtered =
+            maintenanceRecords.filter(item => {
+
+                const matchesSearch = [
+                    item.id,
+                    item.room?.roomNumber,
+                    item.description
+                ].some(value =>
+                    String(value ?? "")
+                        .toLowerCase()
+                        .includes(search)
+                );
+
+                const matchesStatus =
+                    !status || item.status === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+        table.replaceChildren();
+
+        if (filtered.length === 0) {
+
+            const row = table.insertRow();
+            const cell = row.insertCell();
+
+            cell.colSpan = 7;
+            cell.className = "text-center";
+            cell.textContent =
+                "No maintenance records found";
+
+            return;
+        }
+
+        filtered.forEach(item => {
+
+            const row = table.insertRow();
+
+            addCell(row, item.id);
+
+            addCell(
+                row,
+                item.room?.roomNumber
+            );
+
+            addCell(
+                row,
+                item.description
+            );
+
+            addCell(
+                row,
+                item.startDate
+            );
+
+            addCell(
+                row,
+                item.endDate
+            );
+
+            const statusCell = row.insertCell();
+
+            const badge =
+                document.createElement("span");
+
+            const statusColors = {
+                SCHEDULED: "primary",
+                IN_PROGRESS: "warning",
+                COMPLETED: "success"
+            };
+
+            badge.className =
+                "badge bg-" +
+                (statusColors[item.status] ||
+                    "secondary");
+
+            badge.textContent =
+                String(item.status || "UNKNOWN")
+                    .replaceAll("_", " ");
+
+            statusCell.appendChild(badge);
+
+            const actionCell = row.insertCell();
+
+            if (item.status === "SCHEDULED") {
+
+                actionCell.appendChild(
+                    createButton(
+                        "Start",
+                        "primary",
+                        () => changeStatus(
+                            item.id,
+                            "start"
+                        )
+                    )
+                );
+            }
+
+            if (item.status === "IN_PROGRESS") {
+
+                actionCell.appendChild(
+                    createButton(
+                        "Complete",
+                        "success",
+                        () => changeStatus(
+                            item.id,
+                            "complete"
+                        )
+                    )
+                );
+            }
+
+            if (item.status === "SCHEDULED") {
+
+                actionCell.appendChild(
+                    createButton(
+                        "Edit",
+                        "warning",
+                        () => editMaintenance(item.id)
+                    )
+                );
+            }
+
+            actionCell.appendChild(
+                createButton(
+                    "Delete",
+                    "danger",
+                    () => deleteMaintenance(item.id)
+                )
+            );
+        });
+    }
+
+    // OPEN ADD FORM
+    async function openAddMaintenance() {
+
+        document.getElementById(
+            "maintenanceForm"
+        ).reset();
+
+        document.getElementById(
+            "maintenanceId"
+        ).value = "";
+
+        document.getElementById(
+            "modalTitle"
+        ).textContent = "Add Maintenance";
+
+        clearFormError();
+
+        maintenanceModal.show();
+
+        try {
+            await loadRooms();
+        } catch (error) {
+            showFormError(error.message);
+        }
+    }
+
+    // OPEN EDIT FORM
+    async function editMaintenance(id) {
+
+        const item = maintenanceRecords.find(
+            record => record.id === id
+        );
+
+        if (!item) {
+            showMessage(
+                "Maintenance record not found",
+                "danger"
+            );
+            return;
+        }
+
+        document.getElementById(
+            "maintenanceForm"
+        ).reset();
+
+        document.getElementById(
+            "maintenanceId"
+        ).value = item.id;
+
+        document.getElementById(
+            "description"
+        ).value = item.description ?? "";
+
+        document.getElementById(
+            "startDate"
+        ).value = item.startDate ?? "";
+
+        document.getElementById(
+            "endDate"
+        ).value = item.endDate ?? "";
+
+        document.getElementById(
+            "modalTitle"
+        ).textContent = "Edit Maintenance";
+
+        clearFormError();
+        maintenanceModal.show();
+
+        try {
+
+            await loadRooms();
+
+            document.getElementById(
+                "roomId"
+            ).value = item.room?.id ?? "";
+
+        } catch (error) {
+
+            showFormError(error.message);
+        }
+    }
+
+    // CREATE OR UPDATE MAINTENANCE
+    document.getElementById("maintenanceForm")
+        .addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+                clearFormError();
+
+                const id =
+                    document.getElementById(
+                        "maintenanceId"
+                    ).value;
+
+                const roomId = Number(
+                    document.getElementById(
+                        "roomId"
+                    ).value
+                );
+
+                const description =
+                    document.getElementById(
+                        "description"
+                    ).value.trim();
+
+                const startDate =
+                    document.getElementById(
+                        "startDate"
+                    ).value;
+
+                const endDate =
+                    document.getElementById(
+                        "endDate"
+                    ).value;
+
+                if (!roomId || !description) {
+
+                    showFormError(
+                        "Please select a room and " +
+                        "enter a description."
+                    );
+
+                    return;
+                }
+
+                if (endDate < startDate) {
+
+                    showFormError(
+                        "End date cannot be " +
+                        "before start date."
+                    );
+
+                    return;
+                }
+
+                const maintenanceData = {
+
+                    room: {
+                        id: roomId
+                    },
+
+                    description: description,
+
+                    startDate: startDate,
+
+                    endDate: endDate
+
+                };
+
+                const url = id
+                    ? `${MAINTENANCE_API}/${id}`
+                    : MAINTENANCE_API;
+
+                const method =
+                    id ? "PUT" : "POST";
+
+                const saveButton =
+                    document.getElementById(
+                        "saveButton"
+                    );
+
+                saveButton.disabled = true;
+
+                try {
+
+                    const response = await fetch(
+                        url,
+                        {
+                            method: method,
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify(
+                                maintenanceData
+                            )
+                        }
+                    );
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            "HTTP " + response.status
+                        );
+                    }
+
+                    maintenanceModal.hide();
+
+                    showMessage(
+                        id
+                            ? "Maintenance updated successfully!"
+                            : "Maintenance created successfully!"
+                    );
+
+                    await loadMaintenance();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    showFormError(
+                        "Unable to save maintenance: " +
+                        error.message
+                    );
+
+                } finally {
+
+                    saveButton.disabled = false;
+                }
+            }
+        );
+
+    // START OR COMPLETE MAINTENANCE
+    async function changeStatus(id, action) {
+
+        const confirmed = confirm(
+            "Are you sure you want to " +
+            action +
+            " maintenance #" + id + "?"
+        );
+
+        if (!confirmed || actionInProgress) {
+            return;
+        }
+
+        actionInProgress = true;
+        displayMaintenance();
+
+        try {
+
+            const response = await fetch(
+                `${MAINTENANCE_API}/${id}/${action}`,
+                {
+                    method: "PUT"
+                }
+            );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            showMessage(
+                "Maintenance " +
+                (action === "start"
+                    ? "started"
+                    : "completed") +
+                " successfully!"
+            );
+
+            await loadMaintenance();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Unable to update maintenance: " +
+                error.message,
+                "danger"
+            );
+
+        } finally {
+
+            actionInProgress = false;
+            displayMaintenance();
+        }
+    }
+
+    // DELETE MAINTENANCE
+    async function deleteMaintenance(id) {
+
+        const confirmed = confirm(
+            "Delete maintenance record #" + id + "?"
+        );
+
+        if (!confirmed || actionInProgress) {
+            return;
+        }
+
+        actionInProgress = true;
+        displayMaintenance();
+
+        try {
+
+            const response = await fetch(
+                `${MAINTENANCE_API}/${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            showMessage(
+                "Maintenance deleted successfully!"
+            );
+
+            await loadMaintenance();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Unable to delete maintenance: " +
+                error.message,
+                "danger"
+            );
+
+        } finally {
+
+            actionInProgress = false;
+            displayMaintenance();
+        }
+    }
+
+    // LOAD PAGE
+    document.addEventListener(
+        "DOMContentLoaded",
+        loadMaintenance
+    );
+
+</script>
+
+</body>
+</html>

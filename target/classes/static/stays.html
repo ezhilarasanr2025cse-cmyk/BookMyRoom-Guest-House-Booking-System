@@ -1,0 +1,689 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>BookMyRoom | Stay Management</title>
+
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f1f5f9;
+            font-family: Arial, sans-serif;
+        }
+
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            flex-shrink: 0;
+            background: #172554;
+            padding: 25px 15px;
+            color: white;
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-bottom: 30px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 13px 15px;
+            margin-bottom: 7px;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 35px;
+        }
+
+        .card-box {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            color: #172554;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .table th {
+            background: #eff6ff;
+            color: #172554;
+        }
+
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+            }
+
+            .main {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="d-flex layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+
+        <div class="brand">BookMyRoom</div>
+
+        <div class="subtitle">
+            Guest House Management
+        </div>
+
+        <a href="/index.html">Dashboard</a>
+        <a href="/rooms.html">Rooms</a>
+        <a href="/guests.html">Guests</a>
+        <a href="/bookings.html">Bookings</a>
+
+        <a href="/stays.html" class="active">
+            Check-in / Check-out
+        </a>
+
+        <a href="/maintenance.html">Maintenance</a>
+        <a href="/payments.html">Payments</a>
+        <a href="/reports.html">Reports</a>
+
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <div class="d-flex justify-content-between
+                    align-items-center mb-4 gap-3">
+
+            <div>
+                <h2 class="fw-bold">
+                    Stay Management
+                </h2>
+
+                <p class="text-muted">
+                    Manage guest arrivals and departures
+                </p>
+            </div>
+
+            <button class="btn btn-primary"
+                    onclick="loadStays()">
+                Refresh
+            </button>
+
+        </div>
+
+        <!-- ALERT -->
+        <div id="message"
+             class="alert d-none"
+             role="alert"></div>
+
+        <!-- SUMMARY -->
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Confirmed Bookings
+                    </p>
+
+                    <div class="stat-value"
+                         id="confirmedCount">
+                        --
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Checked In
+                    </p>
+
+                    <div class="stat-value"
+                         id="checkedInCount">
+                        --
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card-box">
+                    <p class="text-muted mb-2">
+                        Checked Out
+                    </p>
+
+                    <div class="stat-value"
+                         id="checkedOutCount">
+                        --
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- STAY TABLE -->
+        <div class="card-box">
+
+            <h4 class="mb-3">
+                Bookings and Stays
+            </h4>
+
+            <div class="row g-2 mb-3">
+
+                <div class="col-md-8">
+
+                    <input
+                            type="search"
+                            id="searchStay"
+                            class="form-control"
+                            placeholder="Search guest, room or booking ID"
+                            oninput="displayStays()">
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <select id="statusFilter"
+                            class="form-select"
+                            onchange="displayStays()">
+
+                        <option value="">
+                            All statuses
+                        </option>
+
+                        <option value="CONFIRMED">
+                            Confirmed
+                        </option>
+
+                        <option value="CHECKED_IN">
+                            Checked In
+                        </option>
+
+                        <option value="CHECKED_OUT">
+                            Checked Out
+                        </option>
+
+                        <option value="CANCELLED">
+                            Cancelled
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered
+                              table-hover align-middle">
+
+                    <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Guest</th>
+                        <th>Room</th>
+                        <th>Check-in Date</th>
+                        <th>Check-out Date</th>
+                        <th>Actual Check-in</th>
+                        <th>Actual Check-out</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="stayTable">
+
+                    <tr>
+                        <td colspan="9"
+                            class="text-center">
+                            Loading stays...
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+
+    const BOOKING_API = "/api/bookings";
+    const STAY_API = "/api/stays";
+
+    let bookings = [];
+    let actionInProgress = false;
+
+    // DISPLAY ALERT
+    function showMessage(text, type = "success") {
+
+        const box =
+            document.getElementById("message");
+
+        box.className = "alert alert-" + type;
+        box.textContent = text;
+    }
+
+    // FORMAT ACTUAL CHECK-IN / CHECK-OUT TIME
+    function formatDateTime(value) {
+
+        if (!value) {
+            return "--";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return String(value);
+        }
+
+        return date.toLocaleString("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
+    }
+
+    // CREATE A TABLE CELL SAFELY
+    function addCell(row, value) {
+
+        const cell = row.insertCell();
+
+        cell.textContent = value ?? "--";
+
+        return cell;
+    }
+
+    // DISPLAY BOOKING STATUS
+    function createStatusBadge(status) {
+
+        const badge =
+            document.createElement("span");
+
+        const colors = {
+            CONFIRMED: "primary",
+            CHECKED_IN: "success",
+            CHECKED_OUT: "secondary",
+            CANCELLED: "danger"
+        };
+
+        badge.className =
+            "badge bg-" +
+            (colors[status] || "secondary");
+
+        badge.textContent =
+            String(status || "UNKNOWN")
+                .replaceAll("_", " ");
+
+        return badge;
+    }
+
+    // LOAD BOOKING DATA
+    async function loadStays() {
+
+        const table =
+            document.getElementById("stayTable");
+
+        table.replaceChildren();
+
+        const row = table.insertRow();
+        const cell = row.insertCell();
+
+        cell.colSpan = 9;
+        cell.className = "text-center";
+        cell.textContent = "Loading stays...";
+
+        try {
+
+            const response =
+                await fetch(BOOKING_API);
+
+            if (!response.ok) {
+                throw new Error(
+                    "HTTP " + response.status
+                );
+            }
+
+            const data = await response.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error(
+                    "Unexpected booking response"
+                );
+            }
+
+            bookings = data;
+
+            updateStatistics();
+            displayStays();
+
+        } catch (error) {
+
+            console.error(error);
+
+            table.replaceChildren();
+
+            const errorRow = table.insertRow();
+            const errorCell = errorRow.insertCell();
+
+            errorCell.colSpan = 9;
+            errorCell.className =
+                "text-center text-danger";
+
+            errorCell.textContent =
+                "Unable to load stay information";
+
+            showMessage(
+                "Unable to load stays: " +
+                error.message,
+                "danger"
+            );
+        }
+    }
+
+    // UPDATE SUMMARY CARDS
+    function updateStatistics() {
+
+        document.getElementById("confirmedCount")
+            .textContent = bookings.filter(
+            booking =>
+                booking.status === "CONFIRMED"
+        ).length;
+
+        document.getElementById("checkedInCount")
+            .textContent = bookings.filter(
+            booking =>
+                booking.status === "CHECKED_IN"
+        ).length;
+
+        document.getElementById("checkedOutCount")
+            .textContent = bookings.filter(
+            booking =>
+                booking.status === "CHECKED_OUT"
+        ).length;
+    }
+
+    // DISPLAY BOOKINGS AND FILTER RESULTS
+    function displayStays() {
+
+        const table =
+            document.getElementById("stayTable");
+
+        const search =
+            document.getElementById("searchStay")
+                .value.toLowerCase().trim();
+
+        const status =
+            document.getElementById("statusFilter")
+                .value;
+
+        const filtered = bookings.filter(booking => {
+
+            const matchesSearch = [
+                booking.id,
+                booking.guest?.name,
+                booking.room?.roomNumber
+            ].some(value =>
+                String(value ?? "")
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+            const matchesStatus =
+                !status ||
+                booking.status === status;
+
+            return matchesSearch && matchesStatus;
+        });
+
+        table.replaceChildren();
+
+        if (filtered.length === 0) {
+
+            const row = table.insertRow();
+            const cell = row.insertCell();
+
+            cell.colSpan = 9;
+            cell.className = "text-center";
+            cell.textContent = "No stays found";
+
+            return;
+        }
+
+        filtered.forEach(booking => {
+
+            const row = table.insertRow();
+
+            addCell(row, booking.id);
+
+            addCell(
+                row,
+                booking.guest?.name
+            );
+
+            addCell(
+                row,
+                booking.room?.roomNumber
+            );
+
+            addCell(
+                row,
+                booking.checkIn
+            );
+
+            addCell(
+                row,
+                booking.checkOut
+            );
+
+            addCell(
+                row,
+                formatDateTime(
+                    booking.actualCheckIn
+                )
+            );
+
+            addCell(
+                row,
+                formatDateTime(
+                    booking.actualCheckOut
+                )
+            );
+
+            const statusCell = row.insertCell();
+
+            statusCell.appendChild(
+                createStatusBadge(booking.status)
+            );
+
+            const actionCell = row.insertCell();
+
+            if (booking.status === "CONFIRMED") {
+
+                const button =
+                    document.createElement("button");
+
+                button.className =
+                    "btn btn-sm btn-success";
+
+                button.textContent = "Check In";
+
+                button.disabled = actionInProgress;
+
+                button.onclick =
+                    () => checkIn(booking.id);
+
+                actionCell.appendChild(button);
+
+            } else if (
+                booking.status === "CHECKED_IN"
+            ) {
+
+                const button =
+                    document.createElement("button");
+
+                button.className =
+                    "btn btn-sm btn-warning";
+
+                button.textContent = "Check Out";
+
+                button.disabled = actionInProgress;
+
+                button.onclick =
+                    () => checkOut(booking.id);
+
+                actionCell.appendChild(button);
+
+            } else {
+
+                actionCell.textContent = "--";
+            }
+        });
+    }
+
+    // CHECK IN GUEST
+    async function checkIn(bookingId) {
+
+        const confirmed = confirm(
+            "Check in guest for booking #" +
+            bookingId + "?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        await performStayAction(
+            bookingId,
+            "check-in",
+            "Guest checked in successfully!"
+        );
+    }
+
+    // CHECK OUT GUEST
+    async function checkOut(bookingId) {
+
+        const confirmed = confirm(
+            "Check out guest for booking #" +
+            bookingId + "?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        await performStayAction(
+            bookingId,
+            "check-out",
+            "Guest checked out successfully!"
+        );
+    }
+
+    // CALL SPRING BOOT STAY API
+    async function performStayAction(
+        bookingId,
+        action,
+        successMessage
+    ) {
+
+        if (actionInProgress) {
+            return;
+        }
+
+        actionInProgress = true;
+        displayStays();
+
+        try {
+
+            const response = await fetch(
+                `${STAY_API}/${bookingId}/${action}`,
+                {
+                    method: "PUT"
+                }
+            );
+
+            if (!response.ok) {
+
+                const details =
+                    await response.text();
+
+                throw new Error(
+                    "HTTP " + response.status +
+                    (details
+                        ? ": " + details.slice(0, 150)
+                        : "")
+                );
+            }
+
+            showMessage(successMessage);
+
+            await loadStays();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Unable to complete " +
+                action.replace("-", " ") +
+                ": " + error.message,
+                "danger"
+            );
+
+        } finally {
+
+            actionInProgress = false;
+            displayStays();
+        }
+    }
+
+    // INITIAL PAGE LOAD
+    document.addEventListener(
+        "DOMContentLoaded",
+        loadStays
+    );
+
+</script>
+
+</body>
+</html>
